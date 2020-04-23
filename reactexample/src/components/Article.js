@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Global from '../Global';
 import Sidebar from './Sidebar';
+import {Redirect , Link} from 'react-router-dom';
 import Moment from 'react-moment';
 import 'moment/locale/es';
 import imageDefault from '../assets/images/default.png';
@@ -17,6 +18,16 @@ class Article extends Component {
 
     componentWillMount() {
         this.getArticle();
+    }
+
+    deleteArticle =(id)=>{
+        axios.delete(this.url+'delete/'+id)
+            .then(res=>{
+                this.setState({
+                    article:res.data.article,
+                    status:'deleted'
+                });
+            });
     }
 
     getArticle = () => {
@@ -38,6 +49,9 @@ class Article extends Component {
     }
 
     render() {
+        if (this.state.status ==='deleted') {
+            return <Redirect to='/blog' />
+        }
         let article = this.state.article;
         return (
             <div className="center">
@@ -58,8 +72,13 @@ class Article extends Component {
                             <p>
                                 {article.content}
                             </p>
-                            <a href="#" className="btn btn-warning">Editar</a>
-                            <a href="#" className="btn btn-danger">Eliminar</a>
+                            
+                            <button className="btn btn-danger" onClick={
+                                ()=>{
+                                    this.deleteArticle(article._id)
+                                }
+                            }>Eliminar</button>
+                            <Link to={'/blog/editar/'+article._id}className="btn btn-warning" >Editar</Link>
                             <div className="clearfix"></div>
                         </article>
                     }

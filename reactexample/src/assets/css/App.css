@@ -329,6 +329,11 @@ textarea{
   text-decoration: underline;
 }
 
+.thumb{
+  width: 170px;
+  float: left;
+  display: block;
+}
 .subheader{
   font-size: 38px;
   border-bottom: 1px solid #eee;

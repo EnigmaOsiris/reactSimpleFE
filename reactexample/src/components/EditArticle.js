@@ -4,14 +4,16 @@ import axios from 'axios';
 import Global from '../Global';
 import Sidebar from './Sidebar';
 import SimpleReactValidator from 'simple-react-validator';
+import imageDefault from '../assets/images/default.png';
 
 //validacion formularios y alertas
 
-class CreateArticle extends Component {
+class EditArticle extends Component {
 
     url = Global.url;
     titleRef = React.createRef();
     contentRef = React.createRef();
+    articleId = null;
 
     state = {
         article: {},
@@ -20,14 +22,26 @@ class CreateArticle extends Component {
     }
 
     componentWillMount() {
+        this.articleId = this.props.match.params.id;
+        this.getArticle(this.articleId)
         this.validator = new SimpleReactValidator();
+    }
+
+    getArticle = (id) => {
+        axios.get(this.url + 'article/' + id)
+            .then(res => {
+                this.setState({
+                    article: res.data.article
+                });
+            })
     }
 
     chageState = () => {
         this.setState({
             article: {
                 title: this.titleRef.current.value,
-                content: this.contentRef.current.value
+                content: this.contentRef.current.value,
+                image:this.state.article.image
             }
         })
         this.validator.showMessages();
@@ -41,7 +55,7 @@ class CreateArticle extends Component {
         this.chageState();
         //
         if (this.validator.allValid()) {
-            axios.post(this.url + 'save', this.state.article)
+            axios.put(this.url + 'article/' + this.articleId, this.state.article)
                 .then(res => {
                     if (res.data.article) {
                         this.setState({
@@ -69,13 +83,13 @@ class CreateArticle extends Component {
                                             status: 'success'
                                         });
 
-                                        
+
                                     } else {
                                         this.setState({
                                             article: res.data.article,
                                             status: 'failed'
                                         });
-                                        
+
                                     }
                                 })
 
@@ -109,34 +123,49 @@ class CreateArticle extends Component {
 
     render() {
 
+        //console.log(this.state.article);
+
         if (this.state.status === 'success') {
             return <Redirect to="/blog" />
         }
+        let article = this.state.article;
         return (
             <div className="center">
                 <section id="content">
-                    <h1 className="subheader">Crear Articulo</h1>
-                    <form className="mid-form" onSubmit={this.saveArticle}>
-                        <div className="form-group">
-                            <label htmlFor="title">Titulo</label>
-                            <input type="text" name="title" ref={this.titleRef} onChange={this.chageState} />
-                            {
-                                this.validator.message('title', this.state.article.title, 'required|alpha_num_space')
-                            }
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="content">Contenido</label>
-                            <textarea name="content" ref={this.contentRef} onChange={this.chageState} ></textarea>
-                            {
-                                this.validator.message('content', this.state.article.content, 'required')
-                            }
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="file0">Imagen</label>
-                            <input type="file" name="file0" onChange={this.fileChange} />
-                        </div>
-                        <input type="submit" value="Guardar" className="btn btn-success" />
-                    </form>
+                    <h1 className="subheader">Editar Articulo</h1>
+                    {this.state.article.title &&
+                        <form className="mid-form" onSubmit={this.saveArticle}>
+                            <div className="form-group">
+                                <label htmlFor="title">Titulo</label>
+                                <input type="text" name="title" defaultValue={article.title} ref={this.titleRef} onChange={this.chageState} />
+                                {
+                                    this.validator.message('title', this.state.article.title, 'required|alpha_num_space')
+                                }
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="content">Contenido</label>
+                                <textarea name="content" ref={this.contentRef} defaultValue={article.content} onChange={this.chageState} ></textarea>
+                                {
+                                    this.validator.message('content', this.state.article.content, 'required')
+                                }
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="file0">Imagen</label>
+                                <input type="file" name="file0" onChange={this.fileChange} />
+                            </div>
+                            <div className="image-wrap">
+                                {article.image !== null ?
+                                    (<img src={this.url + 'get_image/' + article.image} alt={article.title} className="thumb" />)
+                                    : (<img src={imageDefault} alt={article.title} className="thumb" />)
+                                }
+                            </div>
+                            <div className="clearfix"></div>
+                            <input type="submit" value="Guardar" className="btn btn-success" />
+                        </form>
+                    }{!this.state.article.title &&
+                        <h1 className="subheader">Cargando...</h1>
+                    }
+
                 </section>
                 <Sidebar />
             </div>
@@ -144,4 +173,4 @@ class CreateArticle extends Component {
     }
 }
 
-export default CreateArticle;
+export default EditArticle;
